@@ -12,11 +12,12 @@ class ion:
 
 class lat_2d:
 
-    def __init__(self,N:int,coverage:float):
+    def __init__(self,N:int,coverage:float,epsilon:float):
         if coverage>1:
             print("Coverage Cannot be greater than 1")
             raise ValueError
         self.N=N
+        self.epsilon=epsilon
         self.cov=coverage
         self.ions=list()        
 
@@ -31,19 +32,31 @@ class lat_2d:
             ionc.append(tuple(A[b]))    
         return (lattice, ionc)
 
+    def get_energy_2d(self,sites):
+        A=np.array([(i,j) for i in range(self.N) for j in range(self.N)])
+        B=np.arange(0,self.N**2)
+        ionc=list()                                                             #contains the intial position of all the occupying lattice ions
+        choice=np.random.choice(B,int(sites))#self.cov*self.N*self.N
+        lattice=np.zeros((self.N,self.N))
+        for b in choice:
+            lattice[ tuple(A[b]) ]+=self.epsilon 
+        
+        return lattice
 
     def init_lattice(self):
         self.lattice,self.ionpos=self.get_lattice_2d()
         for i,posn in enumerate(self.ionpos):
             self.ions.append(ion(i,posn))
-            
-
+    
+    def init_energylattice(self):
+        self.enlattice=self.get_energy_2d((100-self.cov)*(self.N**2)/100)
+  
     def mappostolat(self,s,i:int):
         """
         Args:
         s(2-D numpy vector): the random next step (coordination number 4)
-        i(int): index of the ion lattice ion
         Returns:
+        i(int): index of the ion lattice ion
         2-tuple of indices for the mapped position of ion onto the lattice if that step is taken
         """
         if s is None:
@@ -58,16 +71,16 @@ class lat_2d:
         s=np.array(MOVES[np.random.choice([0,1,2,3])]) # s is an array but class.pos is a tuple, so we add them by converting pos into ndarray and then revert it back to tuple
        # print("U: ",s, i)
         
-        #applying periodic boundary 
-        #TODO:check if this implementation works
         
         latposn=self.mappostolat(s,i)
-
-        if self.lattice[latposn]!=1: #if there is no ion in the step chosen
+        delU=self.enlattice[latposn]-self.enlattice[self.mappostolat(None,i)]
+        """TODO Apply the energy lattice condition """
+        rnd=np.random.uniform(0,1)
+        prob=np.exp(-delU)
+        if self.lattice[latposn]!=1 and prob>rnd: #if there is no ion in the step chosen
             self.lattice[self.mappostolat(None,i)]=0 #vacate teh current position in the lattice   
             self.ions[i].pos=tuple(np.array(self.ions[i].pos)+s) #update the ion position
             self.lattice[latposn]=1 #update the new filled position
-        
         return None
 
     def onemcstep(self):
@@ -85,16 +98,19 @@ class lat_2d:
         return disp
 write=0
 N=20
-NSTEPS=100000
+NSTEPS=150000
 WT=100
 today=date.today()
-coverage=[10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0]
+coverage=[100-2*i for i in range(45,51)]
+epsilon=2223/1300
+equilibriation=50000
 for cov in coverage:
     day=today.strftime("%B-%d-%Y")
-    fname=f"simdata\\Simrun-2\\Coverage-{cov}-NSTEPS{NSTEPS}-{day}.txt"
+    fname=f"simdata\\Simrun-3\\Coverage-{cov}-NSTEPS{NSTEPS}-{day}.txt"
     with open(fname,'w+') as fhand: 
-        mylat=lat_2d(N,cov/100)
+        mylat=lat_2d(N,cov/100,epsilon)
         mylat.init_lattice()
+        mylat.init_energylattice()
         NIONS=len(mylat.ions)
         fhand.write(f"Created:{day} \n")
         fhand.write(f"Coverage:{cov} \n")
@@ -102,9 +118,10 @@ for cov in coverage:
         fhand.write(f"NUM-IONS:{NIONS} \n")
         fhand.write(f"NSTEPS:{NSTEPS} \n")
         fhand.write(f"WRITE-PERIODICITY:{WT} \n")
+        fhand.write(f"epsilon:{epsilon} \n")
         for i,step in enumerate(range(NSTEPS)):
             mylat.onemcstep()
-            if i%WT==0:
+            if i%WT==0 and i>equilibriation:
                 for io in mylat.ions:
                     fhand.write(f"{io.pos[0]}  {io.pos[1]} \n")
 

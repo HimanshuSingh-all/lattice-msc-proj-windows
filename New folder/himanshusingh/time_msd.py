@@ -5,7 +5,7 @@ def time_msd(traj):
     mea=list()
     for n in range(1,N):
         print(n)
-        disp_sq_comp=(traj[n::,1:]-traj[:-n:,1:])*(traj[n::,1:]-traj[:-n:,1:])
+        disp_sq_comp=(traj[n::,1:]-traj[:-n:,1:])*(traj[n::,1:]-traj[:-n:,1:])#
         print(disp_sq_comp,":\n",traj[n::,1:],":\n",traj[:-n:,1:])
         disp=np.sum(disp_sq_comp,axis=1)
         MSD=np.mean(disp)

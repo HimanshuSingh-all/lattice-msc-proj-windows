@@ -17,7 +17,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import glob
 import numpy as np
-paramlen=6
+
 def getrunparams(fname,paramlen):
     params=dict()    
     with open(fname) as fhand:
@@ -54,13 +54,18 @@ def time_msd(traj,fname,paramlen):
     s=int(params['NUM-IONS'])
     NS=int(params['NSTEPS'])
     WP=int(params['WRITE-PERIODICITY'])
-    tau=NS/(4*WP)
-    for n in range(1,N):
-        disp_sq_comp=(traj[n*s::]-traj[:-n*s:s])*(traj[n*s::]-traj[:-n*s:s]) #traj[:-n:,1:] means that we slice till (lastelement-n)th element  
-        print(disp_sq_comp,":\n",traj[n::,1:],":\n",traj[:-n:,1:])
+    
+    tau=NS//(4*WP)
+    print(tau)
+    for n in range(1,tau+1):
+        disp_sq_comp=(traj[n*s::]-traj[:-n*s:])*(traj[n*s::]-traj[:-n*s:]) #traj[:-n:,1:] means that we slice till (lastelement-n)th element  
+        #print(disp_sq_comp,":\n",traj[n::,1:],":\n",traj[:-n:,1:])
+        
         disp=np.sum(disp_sq_comp,axis=1) 
         
         MSD=np.mean(disp)
-        print(MSD)
+        print(n,":",MSD)
         mea.append(MSD)
+    print("_______________________")
+    print(params['Coverage'],fname)
     return mea
