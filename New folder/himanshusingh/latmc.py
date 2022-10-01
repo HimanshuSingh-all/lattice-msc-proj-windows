@@ -13,26 +13,32 @@ class ion:
 class lat_2d:
 
     def __init__(self,N:int,coverage:float,epsilon:float):
+        
         if coverage>1:
             print("Coverage Cannot be greater than 1")
             raise ValueError
+
         self.N=N
         self.epsilon=epsilon
         self.cov=coverage
         self.ions=list()        
 
     def get_lattice_2d(self):
+        
         A=np.array([(i,j) for i in range(self.N) for j in range(self.N)])
         B=np.arange(0,self.N**2)
         ionc=list()                                                             #contains the intial position of all the occupying lattice ions
         choice=np.random.choice(B,int(self.cov*self.N*self.N),replace=False)
         lattice=np.zeros((self.N,self.N))
+
         for b in choice:
             lattice[ tuple(A[b]) ]=1 
             ionc.append(tuple(A[b]))    
+
         return (lattice, ionc)
 
     def get_energy_2d(self,sites):
+
         A=np.array([(i,j) for i in range(self.N) for j in range(self.N)])
         B=np.arange(0,self.N**2)
         ionc=list()                                                             #contains the intial position of all the occupying lattice ions
@@ -44,13 +50,17 @@ class lat_2d:
         return lattice
 
     def init_lattice(self):
+
         self.lattice,self.ionpos=self.get_lattice_2d()
+
         for i,posn in enumerate(self.ionpos):
             self.ions.append(ion(i,posn))
     
+
     def init_energylattice(self):
         self.enlattice=self.get_energy_2d((100-self.cov)*(self.N**2)/100)
   
+
     def mappostolat(self,s,i:int):
         """
         Args:
@@ -68,20 +78,23 @@ class lat_2d:
     def oneionstep(self,i):
         
         MOVES=[(1,0),(0,1),(-1,0),(0,-1)]
-        s=np.array(MOVES[np.random.choice([0,1,2,3])]) # s is an array but class.pos is a tuple, so we add them by converting pos into ndarray and then revert it back to tuple
-       # print("U: ",s, i)
-        
+        s=np.array(MOVES[np.random.choice([0,1,2,3])])                                      # s is an array but class.pos is a tuple,
+                                                                                            # so we add them by converting pos into ndarray
+                                                                                            # and then revert it back to tuple
+
         
         latposn=self.mappostolat(s,i)
         delU=self.enlattice[latposn]-self.enlattice[self.mappostolat(None,i)]
-        """TODO Apply the energy lattice condition """
         rnd=np.random.uniform(0,1)
         prob=np.exp(-delU)
-        if self.lattice[latposn]!=1 and prob>rnd: #if there is no ion in the step chosen
-            self.lattice[self.mappostolat(None,i)]=0 #vacate teh current position in the lattice   
-            self.ions[i].pos=tuple(np.array(self.ions[i].pos)+s) #update the ion position
-            self.lattice[latposn]=1 #update the new filled position
+
+        if self.lattice[latposn]!=1 and prob>rnd:                                            #if there is no ion in the step chosen
+            self.lattice[self.mappostolat(None,i)]=0                                         #vacate teh current position in the lattice   
+            self.ions[i].pos=tuple(np.array(self.ions[i].pos)+s)                             #update the ion position
+            self.lattice[latposn]=1                                                          #update the new filled position
         return None
+
+    #TODO: This following recursion won't work if someone puts coverage as 0, be careful
 
     def onemcstep(self):
         if len(self.ions)!=0:
@@ -96,6 +109,7 @@ class lat_2d:
             disp[i]=np.linalg.norm((np.array(io.pos)-np.array(io.init)))**2
             #print("posn: ",(np.array(io.pos)-np.array(io.init)),":",np.linalg.norm((np.array(io.pos)-np.array(io.init))))
         return disp
+
 write=0
 N=20
 NSTEPS=150000
