@@ -1,0 +1,15 @@
+Created:June-16-2022 
+Coverage:20.0 
+N:20 
+NUM-IONS:3 
+NSTEPS:3
+WRITE-PERIODICITY:1 
+17  13 
+13  12 
+6  0 
+1  16 
+5  11 
+12  13 
+1  16 
+5  11 
+12  13 

@@ -1,0 +1,36 @@
+# Enter your code here. Read input from STDIN. Print output to STDOUT
+def splitcamel(string):
+    words=list()
+    counter=0
+    for i,w in enumerate(string):
+        if w.isupper():
+            if i!=counter:
+                words.append(string[counter:i].lower())
+            counter=i  
+    words.append(string[counter:].lower())
+    return words      
+    
+    
+def combineCamel(string):
+    words=string.split()
+    combine=words[0]
+    for w in words[1:]:
+        combine+=w[0].upper()+w[1:]
+    return combine 
+
+import sys
+
+inp_data=[lin.rstrip('\n\r') for lin in sys.stdin]
+
+for line in inp_data:
+    mystring=line.split(';')[2]
+    if line[0]=='S':
+        if line[2]=='M':
+            get=splitcamel(mystring[:-2])
+        else:
+            get=splitcamel(mystring)
+        for i in get: print(i,end=" ")
+    if line[0]=='C':
+        get=combineCamel(mystring)
+        print(f'\n{get}',end="")
+            

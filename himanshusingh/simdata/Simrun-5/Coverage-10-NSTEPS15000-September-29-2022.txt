@@ -1,0 +1,7 @@
+Created:September-29-2022 
+Coverage:10 
+N:20 
+NUM-IONS:40 
+NSTEPS:15000 
+WRITE-PERIODICITY:100 
+epsilon:1.71 
